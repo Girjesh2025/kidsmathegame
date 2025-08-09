@@ -3,20 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🎯 Kissu ji Math Game</title>
+<title>Kids Math Game</title>
 <style>
     body {
-        font-family: 'Comic Sans MS', cursive, sans-serif;
-        background: linear-gradient(120deg, #ffecd2, #fcb69f);
+        font-family: Arial, sans-serif;
+        background: #fdf6e3;
         text-align: center;
         margin: 0;
         padding: 0;
+        overflow-x: hidden;
     }
     h1 {
         color: #ff3366;
-        font-size: 2.5rem;
         margin-top: 20px;
-        text-shadow: 2px 2px #fff;
     }
     .container {
         padding: 20px;
@@ -24,27 +23,28 @@
     .mode-buttons button {
         padding: 15px 25px;
         margin: 10px;
-        font-size: 20px;
+        font-size: 18px;
         border: none;
-        border-radius: 12px;
+        border-radius: 8px;
         background-color: #4cafef;
         color: white;
         cursor: pointer;
-        transition: 0.3s;
+        transition: background 0.3s;
     }
     .mode-buttons button:hover {
         background-color: #3a9cd9;
-        transform: scale(1.05);
     }
     #question {
-        font-size: 30px;
+        font-size: 40px;
         margin: 20px 0;
         font-weight: bold;
         color: #333;
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
     }
     #answer {
         padding: 12px;
-        font-size: 18px;
+        font-size: 20px;
         width: 120px;
         border-radius: 8px;
         border: 2px solid #ff3366;
@@ -59,32 +59,45 @@
         background-color: #28a745;
         color: white;
         cursor: pointer;
-        transition: 0.3s;
-    }
-    .check-btn:hover {
-        background-color: #1f7a33;
-        transform: scale(1.05);
     }
     #feedback {
-        font-size: 24px;
+        font-size: 20px;
         margin-top: 15px;
-        font-weight: bold;
     }
     #score, #coins {
-        font-size: 22px;
+        font-size: 20px;
         margin-top: 10px;
         color: #d63384;
     }
-    .mascot {
-        width: 120px;
-        margin-top: 15px;
+    .coin {
+        font-size: 30px;
+        position: fixed;
+        animation: fall 1s linear forwards;
+        z-index: 999;
+    }
+    @keyframes fall {
+        0% { transform: translateY(0); opacity: 1; }
+        100% { transform: translateY(100px); opacity: 0; }
+    }
+    /* Falling Confetti */
+    .confetti {
+        position: fixed;
+        top: -10px;
+        width: 10px;
+        height: 10px;
+        background-color: red;
+        opacity: 0.9;
+        animation: confettiFall linear forwards;
+        z-index: 9999;
+    }
+    @keyframes confettiFall {
+        to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
     }
 </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎯 Kissu Ji Math Game</h1>
-        <img src="" class="mascot" alt="Mascot">
+        <h1>🎯 Kissu ji  Math Game</h1>
         
         <div class="mode-buttons">
             <button onclick="setMode('add')">Addition ➕</button>
@@ -113,8 +126,7 @@
         mode = selectedMode;
         score = 0;
         coins = 0;
-        document.getElementById("score").innerText = "Score: 0";
-        document.getElementById("coins").innerText = "🪙 Coins: 0";
+        updateUI();
         generateQuestion();
     }
 
@@ -127,58 +139,70 @@
         }
 
         correctAnswer = mode === "add" ? num1 + num2 : num1 - num2;
-        document.getElementById("question").innerText = `${num1} ${mode === "add" ? "+" : "-"} ${num2} = ?`;
+        let questionElem = document.getElementById("question");
+        questionElem.style.opacity = 0;
+        setTimeout(() => {
+            questionElem.innerText = `${num1} ${mode === "add" ? "+" : "-"} ${num2} = ?`;
+            questionElem.style.opacity = 1;
+        }, 200);
+
         document.getElementById("answer").value = "";
         document.getElementById("feedback").innerText = "";
     }
 
     function checkAnswer() {
         let userAnswer = parseInt(document.getElementById("answer").value);
-
         if (userAnswer === correctAnswer) {
             score++;
             coins += 10;
-            document.getElementById("feedback").innerHTML = "✅ शाबाश! +10 🪙";
-            document.getElementById("coins").innerText = "🪙 Coins: " + coins;
-            launchConfetti();
+            document.getElementById("feedback").innerHTML = "✅ शाबाश!";
+            speak("शाबाश! सही जवाब");
+            dropCoin();
+            fallingConfetti();
         } else {
-            document.getElementById("feedback").innerHTML = `❌ ओह! सही जवाब था ${correctAnswer}`;
+            document.getElementById("feedback").innerHTML = `❌ सही जवाब था ${correctAnswer}`;
+            speak(`गलत जवाब, सही जवाब है ${correctAnswer}`);
         }
-        document.getElementById("score").innerText = "Score: " + score;
-        setTimeout(generateQuestion, 1000);
+        updateUI();
+        setTimeout(generateQuestion, 1500);
     }
 
-    // Confetti effect
-    function launchConfetti() {
-        const duration = 800;
-        const end = Date.now() + duration;
+    function updateUI() {
+        document.getElementById("score").innerText = "Score: " + score;
+        document.getElementById("coins").innerText = "🪙 Coins: " + coins;
+    }
 
-        (function frame() {
-            const colors = ['#ff0', '#0f0', '#00f', '#f0f', '#0ff', '#f00'];
-            const confetti = document.createElement('div');
-            confetti.style.position = 'fixed';
-            confetti.style.left = Math.random() * window.innerWidth + 'px';
-            confetti.style.top = '0px';
-            confetti.style.width = '10px';
-            confetti.style.height = '10px';
+    function dropCoin() {
+        let coin = document.createElement("div");
+        coin.className = "coin";
+        coin.innerText = "🪙";
+        coin.style.left = (Math.random() * window.innerWidth) + "px";
+        coin.style.top = "50px";
+        document.body.appendChild(coin);
+        setTimeout(() => coin.remove(), 1000);
+    }
+
+    function fallingConfetti() {
+        let colors = ['#ff0', '#0f0', '#00f', '#f0f', '#0ff', '#f00', '#ffa500', '#00ced1'];
+        for (let i = 0; i < 50; i++) {
+            let confetti = document.createElement("div");
+            confetti.className = "confetti";
             confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-            confetti.style.zIndex = 9999;
-            confetti.style.borderRadius = '50%';
+            confetti.style.left = Math.random() * window.innerWidth + "px";
+            confetti.style.animationDuration = (Math.random() * 2 + 2) + "s";
+            confetti.style.width = confetti.style.height = (Math.random() * 8 + 5) + "px";
             document.body.appendChild(confetti);
+            setTimeout(() => confetti.remove(), 3000);
+        }
+    }
 
-            let fall = setInterval(() => {
-                let top = parseFloat(confetti.style.top);
-                confetti.style.top = top + 5 + 'px';
-                if (top > window.innerHeight) {
-                    confetti.remove();
-                    clearInterval(fall);
-                }
-            }, 20);
-
-            if (Date.now() < end) {
-                requestAnimationFrame(frame);
-            }
-        })();
+    // Text-to-Speech
+    function speak(text) {
+        let utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "hi-IN";
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        speechSynthesis.speak(utterance);
     }
 </script>
 </body>
