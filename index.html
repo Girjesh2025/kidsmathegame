@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎯 Kids Math Game</title>
+<style>
+    body {
+        font-family: 'Comic Sans MS', cursive, sans-serif;
+        background: linear-gradient(120deg, #ffecd2, #fcb69f);
+        text-align: center;
+        margin: 0;
+        padding: 0;
+    }
+    h1 {
+        color: #ff3366;
+        font-size: 2.5rem;
+        margin-top: 20px;
+        text-shadow: 2px 2px #fff;
+    }
+    .container {
+        padding: 20px;
+    }
+    .mode-buttons button {
+        padding: 15px 25px;
+        margin: 10px;
+        font-size: 20px;
+        border: none;
+        border-radius: 12px;
+        background-color: #4cafef;
+        color: white;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    .mode-buttons button:hover {
+        background-color: #3a9cd9;
+        transform: scale(1.05);
+    }
+    #question {
+        font-size: 30px;
+        margin: 20px 0;
+        font-weight: bold;
+        color: #333;
+    }
+    #answer {
+        padding: 12px;
+        font-size: 18px;
+        width: 120px;
+        border-radius: 8px;
+        border: 2px solid #ff3366;
+        text-align: center;
+    }
+    .check-btn {
+        padding: 12px 20px;
+        font-size: 18px;
+        margin-top: 15px;
+        border-radius: 8px;
+        border: none;
+        background-color: #28a745;
+        color: white;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    .check-btn:hover {
+        background-color: #1f7a33;
+        transform: scale(1.05);
+    }
+    #feedback {
+        font-size: 24px;
+        margin-top: 15px;
+        font-weight: bold;
+    }
+    #score, #coins {
+        font-size: 22px;
+        margin-top: 10px;
+        color: #d63384;
+    }
+    .mascot {
+        width: 120px;
+        margin-top: 15px;
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Kids Math Game</h1>
+        <img src="https://i.ibb.co/7vW3nTx/panda.png" class="mascot" alt="Mascot">
+        
+        <div class="mode-buttons">
+            <button onclick="setMode('add')">Addition ➕</button>
+            <button onclick="setMode('sub')">Subtraction ➖</button>
+        </div>
+
+        <div class="game">
+            <div id="question">Press a mode to start</div>
+            <input type="number" id="answer" placeholder="Your answer">
+            <br>
+            <button class="check-btn" onclick="checkAnswer()">Check</button>
+        </div>
+
+        <div id="feedback"></div>
+        <div id="score">Score: 0</div>
+        <div id="coins">🪙 Coins: 0</div>
+    </div>
+
+<script>
+    let mode = null;
+    let num1, num2, correctAnswer;
+    let score = 0;
+    let coins = 0;
+
+    function setMode(selectedMode) {
+        mode = selectedMode;
+        score = 0;
+        coins = 0;
+        document.getElementById("score").innerText = "Score: 0";
+        document.getElementById("coins").innerText = "🪙 Coins: 0";
+        generateQuestion();
+    }
+
+    function generateQuestion() {
+        num1 = Math.floor(Math.random() * 10) + 1;
+        num2 = Math.floor(Math.random() * 10) + 1;
+
+        if (mode === "sub" && num2 > num1) {
+            [num1, num2] = [num2, num1];
+        }
+
+        correctAnswer = mode === "add" ? num1 + num2 : num1 - num2;
+        document.getElementById("question").innerText = `${num1} ${mode === "add" ? "+" : "-"} ${num2} = ?`;
+        document.getElementById("answer").value = "";
+        document.getElementById("feedback").innerText = "";
+    }
+
+    function checkAnswer() {
+        let userAnswer = parseInt(document.getElementById("answer").value);
+
+        if (userAnswer === correctAnswer) {
+            score++;
+            coins += 10;
+            document.getElementById("feedback").innerHTML = "✅ शाबाश! +10 🪙";
+            document.getElementById("coins").innerText = "🪙 Coins: " + coins;
+            launchConfetti();
+        } else {
+            document.getElementById("feedback").innerHTML = `❌ ओह! सही जवाब था ${correctAnswer}`;
+        }
+        document.getElementById("score").innerText = "Score: " + score;
+        setTimeout(generateQuestion, 1000);
+    }
+
+    // Confetti effect
+    function launchConfetti() {
+        const duration = 800;
+        const end = Date.now() + duration;
+
+        (function frame() {
+            const colors = ['#ff0', '#0f0', '#00f', '#f0f', '#0ff', '#f00'];
+            const confetti = document.createElement('div');
+            confetti.style.position = 'fixed';
+            confetti.style.left = Math.random() * window.innerWidth + 'px';
+            confetti.style.top = '0px';
+            confetti.style.width = '10px';
+            confetti.style.height = '10px';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.zIndex = 9999;
+            confetti.style.borderRadius = '50%';
+            document.body.appendChild(confetti);
+
+            let fall = setInterval(() => {
+                let top = parseFloat(confetti.style.top);
+                confetti.style.top = top + 5 + 'px';
+                if (top > window.innerHeight) {
+                    confetti.remove();
+                    clearInterval(fall);
+                }
+            }, 20);
+
+            if (Date.now() < end) {
+                requestAnimationFrame(frame);
+            }
+        })();
+    }
+</script>
+</body>
+</html>
